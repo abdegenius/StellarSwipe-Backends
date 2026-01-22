@@ -79,7 +79,9 @@ export class UsersService {
         try {
             return await this.findByWalletAddress(walletAddress);
         } catch {
-            return this.createUser({ walletAddress });
+            // Generate a username from wallet address (first 8 chars)
+            const username = `user_${walletAddress.substring(1, 9).toLowerCase()}`;
+            return this.createUser({ username, walletAddress });
         }
     }
 

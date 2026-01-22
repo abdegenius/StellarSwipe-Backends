@@ -1,7 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { StakeVerificationService } from './stake-verification.service';
 
 // import { Provider } from '../entities/provider.entity';
@@ -20,11 +17,8 @@ export class VerificationMonitorJob {
   /**
    * Daily monitoring job to verify all verified providers' stakes
    * Runs at 2:00 AM every day
+   * Note: Schedule decoration removed - use triggerImmediateCheck() to manually trigger
    */
-  @Cron(CronExpression.EVERY_DAY_AT_2AM, {
-    name: 'stake-verification-monitor',
-    timeZone: 'UTC',
-  })
   async monitorVerifiedProviders(): Promise<void> {
     if (this.isRunning) {
       this.logger.warn('Monitoring job already running, skipping this execution');
@@ -71,7 +65,8 @@ export class VerificationMonitorJob {
         await this.notifyRevokedVerifications(revoked);
       }
     } catch (error) {
-      this.logger.error('Monitoring job failed:', error.stack);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('Monitoring job failed:', errorMessage);
     } finally {
       this.isRunning = false;
     }
@@ -81,10 +76,6 @@ export class VerificationMonitorJob {
    * Hourly health check to ensure monitoring system is working
    * Runs every hour at minute 30
    */
-  @Cron('30 * * * *', {
-    name: 'stake-monitoring-health-check',
-    timeZone: 'UTC',
-  })
   async healthCheck(): Promise<void> {
     this.logger.debug('Stake monitoring system health check');
     
@@ -100,7 +91,8 @@ export class VerificationMonitorJob {
         this.logger.debug('Health check passed. No providers to verify.');
       }
     } catch (error) {
-      this.logger.error('Health check failed:', error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('Health check failed:', errorMessage);
     }
   }
 
@@ -124,7 +116,8 @@ export class VerificationMonitorJob {
       
       this.logger.log(`Provider ${publicKey} verification status: ${isVerified ? 'VERIFIED' : 'NOT VERIFIED'}`);
     } catch (error) {
-      this.logger.error(`Failed to check provider ${publicKey}:`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to check provider ${publicKey}:`, errorMessage);
       throw error;
     }
   }

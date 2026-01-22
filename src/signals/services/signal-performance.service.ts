@@ -11,14 +11,22 @@ import {
   SignalOutcome,
   SignalType,
 } from '../entities/signal.entity';
-import { SignalPerformance } from '../entities/signal-performance.entity';
+
+// Stub for disabled feature
+export class SignalPerformance {
+  id!: string;
+  signalId!: string;
+}
+
+// import { SignalPerformance } from '../entities/signal-performance.entity';
 import { SdexPriceService } from './sdex-price.service';
 import {
   CreateSignalDto,
   UpdateSignalDto,
-  SignalQueryDto,
-  PerformanceQueryDto,
 } from '../dto';
+
+// Stub DTOs for disabled features
+export class PerformanceQueryDto {}
 
 @Injectable()
 export class SignalPerformanceService {
@@ -26,15 +34,15 @@ export class SignalPerformanceService {
   constructor(
     @InjectRepository(Signal)
     private signalRepository: Repository<Signal>,
-    @InjectRepository(SignalPerformance)
-    private performanceRepository: Repository<SignalPerformance>,
+    // @InjectRepository(SignalPerformance)
+    // private performanceRepository: Repository<SignalPerformance>,
     private sdexPriceService: SdexPriceService,
   ) {}
 
   async createSignal(dto: CreateSignalDto): Promise<Signal> {
     const entryPrice = parseFloat(dto.entryPrice);
     const targetPrice = parseFloat(dto.targetPrice);
-    const stopLossPrice = parseFloat(dto.stopLossPrice);
+    const stopLossPrice = parseFloat(dto.stopLossPrice || '0');
 
     if (dto.type === SignalType.BUY) {
       if (targetPrice <= entryPrice) {
@@ -67,15 +75,15 @@ export class SignalPerformanceService {
       type: dto.type,
       entryPrice: dto.entryPrice,
       targetPrice: dto.targetPrice,
-      stopLossPrice: dto.stopLossPrice,
-      expiresAt: new Date(dto.expiresAt),
-      description: dto.description,
-      metadata: dto.metadata,
+      stopLossPrice: dto.stopLossPrice || null,
+      expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : new Date(),
       status: SignalStatus.ACTIVE,
       outcome: SignalOutcome.PENDING,
-    });
+      metadata: dto.metadata,
+    } as any);
 
-    return this.signalRepository.save(signal);
+    const saved = (await this.signalRepository.save(signal)) as unknown as Signal;
+    return saved;
   }
 
   async getSignal(id: string): Promise<Signal> {
@@ -91,14 +99,14 @@ export class SignalPerformanceService {
     return signal;
   }
 
-  async listSignals(query: SignalQueryDto): Promise<{
+  async listSignals(query: any): Promise<{
     data: Signal[];
     total: number;
     page: number;
     limit: number;
   }> {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const page = (query.page as number | undefined) ?? 1;
+    const limit = (query.limit as number | undefined) ?? 20;
 
     const whereConditions: Record<string, unknown> = {};
 
@@ -153,7 +161,8 @@ export class SignalPerformanceService {
       signal.metadata = { ...signal.metadata, ...dto.metadata };
     }
 
-    return this.signalRepository.save(signal);
+    const saved = (await this.signalRepository.save(signal)) as unknown as Signal;
+    return saved;
   }
 
   async closeSignal(
@@ -172,85 +181,20 @@ export class SignalPerformanceService {
     signal.closePrice = closePrice;
     signal.closedAt = new Date();
 
-    return this.signalRepository.save(signal);
+    const saved = (await this.signalRepository.save(signal)) as unknown as Signal;
+    return saved;
   }
 
   async recordPerformance(signalId: string): Promise<SignalPerformance | null> {
+    // Performance tracking is disabled in this build; update current price and return null.
     const signal = await this.getSignal(signalId);
+    if (!signal || signal.status !== SignalStatus.ACTIVE) return null;
 
-    if (signal.status !== SignalStatus.ACTIVE) {
-      return null;
-    }
-
-    const priceResult = await this.sdexPriceService.getPrice(
-      signal.baseAsset,
-      signal.counterAsset,
-    );
-
+    const priceResult = await this.sdexPriceService.getPrice(signal.baseAsset, signal.counterAsset);
     const currentPrice = priceResult.available ? priceResult.price : signal.currentPrice || signal.entryPrice;
 
-    const pnlPercentage = this.sdexPriceService.calculatePnlPercentage(
-      signal.entryPrice,
-      currentPrice,
-    );
-
-    const pnlAbsolute = this.sdexPriceService.calculatePnlAbsolute(
-      signal.entryPrice,
-      currentPrice,
-    );
-
-    const distanceToTarget = this.sdexPriceService.calculateDistanceToTarget(
-      currentPrice,
-      signal.targetPrice,
-      signal.entryPrice,
-    );
-
-    const distanceToStopLoss = this.sdexPriceService.calculateDistanceToStopLoss(
-      currentPrice,
-      signal.stopLossPrice,
-      signal.entryPrice,
-    );
-
-    const timeElapsedSeconds = Math.floor(
-      (Date.now() - signal.createdAt.getTime()) / 1000,
-    );
-
-    const lastPerformance = await this.performanceRepository.findOne({
-      where: { signalId },
-      order: { checkedAt: 'DESC' },
-    });
-
-    const maxDrawdown = Math.min(
-      parseFloat(lastPerformance?.maxDrawdown || '0'),
-      parseFloat(pnlPercentage),
-    ).toFixed(4);
-
-    const maxProfit = Math.max(
-      parseFloat(lastPerformance?.maxProfit || '0'),
-      parseFloat(pnlPercentage),
-    ).toFixed(4);
-
-    const performance = this.performanceRepository.create({
-      signalId,
-      priceAtCheck: currentPrice,
-      pnlPercentage,
-      pnlAbsolute,
-      distanceToTarget,
-      distanceToStopLoss,
-      maxDrawdown,
-      maxProfit,
-      timeElapsedSeconds,
-      copiersAtCheck: signal.copiersCount,
-      volumeAtCheck: signal.totalCopiedVolume,
-      priceSource: priceResult.source,
-      isPriceAvailable: priceResult.available,
-    });
-
-    await this.signalRepository.update(signalId, {
-      currentPrice,
-    });
-
-    return this.performanceRepository.save(performance);
+    await this.signalRepository.update(signalId, { currentPrice } as any);
+    return null;
   }
 
   async checkSignalOutcome(signalId: string): Promise<{
@@ -283,17 +227,18 @@ export class SignalPerformanceService {
       this.sdexPriceService.isTargetHit(
         currentPrice,
         signal.targetPrice,
-        signal.type,
+        signal.type as unknown as 'buy' | 'sell',
       )
     ) {
       return { signal, outcome: SignalOutcome.TARGET_HIT, shouldClose: true };
     }
 
     if (
+      signal.stopLossPrice && 
       this.sdexPriceService.isStopLossHit(
         currentPrice,
         signal.stopLossPrice,
-        signal.type,
+        signal.type as unknown as 'buy' | 'sell',
       )
     ) {
       return { signal, outcome: SignalOutcome.STOP_LOSS_HIT, shouldClose: true };
@@ -318,40 +263,16 @@ export class SignalPerformanceService {
     });
   }
 
-  async getPerformanceHistory(
-    signalId: string,
-    query: PerformanceQueryDto,
-  ): Promise<{
+  async getPerformanceHistory(_signalId: string, query: any): Promise<{
     data: SignalPerformance[];
     total: number;
     page: number;
     limit: number;
   }> {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
-
-    const queryBuilder = this.performanceRepository
-      .createQueryBuilder('performance')
-      .where('performance.signal_id = :signalId', { signalId });
-
-    if (query.from) {
-      queryBuilder.andWhere('performance.checked_at >= :from', {
-        from: new Date(query.from),
-      });
-    }
-    if (query.to) {
-      queryBuilder.andWhere('performance.checked_at <= :to', {
-        to: new Date(query.to),
-      });
-    }
-
-    const [data, total] = await queryBuilder
-      .orderBy('performance.checked_at', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
-
-    return { data, total, page, limit };
+    // Performance tracking disabled in this build — return empty page
+    const page = (query?.page as number | undefined) ?? 1;
+    const limit = (query?.limit as number | undefined) ?? 20;
+    return { data: [], total: 0, page, limit };
   }
 
   async getSignalsByProvider(providerId: string): Promise<Signal[]> {

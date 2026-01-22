@@ -3,6 +3,8 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
+  Index,
 } from 'typeorm';
 
 export enum NotificationType {
@@ -21,10 +23,9 @@ export enum NotificationStatus {
 }
 
 export enum NotificationChannel {
-  IN_APP = 'IN_APP',
   EMAIL = 'EMAIL',
-  PUSH = 'PUSH',
-  WEBHOOK = 'WEBHOOK',
+  IN_APP = 'IN_APP',
+  SMS = 'SMS',
 }
 
 @Entity('expiration_notifications')
@@ -32,14 +33,15 @@ export class ExpirationNotification {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ name: 'user_id' })
+  @Column({ name: 'user_id', type: 'uuid' })
+  @Index()
   userId!: string;
 
-  @Column({ name: 'signal_id', type: 'uuid', nullable: true })
-  signalId!: string | null;
-
   @Column({ name: 'position_id', type: 'uuid', nullable: true })
-  positionId!: string | null;
+  positionId?: string;
+
+  @Column({ name: 'signal_id', type: 'uuid', nullable: true })
+  signalId?: string;
 
   @Column({ type: 'enum', enum: NotificationType })
   type!: NotificationType;
@@ -47,24 +49,27 @@ export class ExpirationNotification {
   @Column({ type: 'enum', enum: NotificationStatus, default: NotificationStatus.PENDING })
   status!: NotificationStatus;
 
-  @Column({ type: 'enum', enum: NotificationChannel, default: NotificationChannel.IN_APP })
-  channel!: NotificationChannel;
+  @Column({ type: 'enum', enum: NotificationChannel, nullable: true })
+  channel?: NotificationChannel;
 
-  @Column()
-  title!: string;
+  @Column({ type: 'text', nullable: true })
+  title?: string;
 
   @Column({ type: 'text' })
   message!: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  data!: Record<string, unknown> | null;
+  data?: Record<string, any>;
 
   @Column({ name: 'sent_at', type: 'timestamp with time zone', nullable: true })
-  sentAt!: Date | null;
+  sentAt?: Date;
 
   @Column({ name: 'read_at', type: 'timestamp with time zone', nullable: true })
-  readAt!: Date | null;
+  readAt?: Date;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
-  createdAt!: Date;
+  createdAt?: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
+  updatedAt?: Date;
 }

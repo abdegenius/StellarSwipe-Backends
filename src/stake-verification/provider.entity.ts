@@ -12,41 +12,41 @@ import {
 @Index(['verified'])
 export class Provider {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ unique: true, length: 56 })
-  publicKey: string;
+  publicKey!: string;
 
   @Column({ default: false })
-  verified: boolean;
+  verified!: boolean;
 
   @Column({ type: 'decimal', precision: 20, scale: 7, default: '0' })
-  stakeAmount: string;
+  stakeAmount!: string;
 
   @Column({ type: 'timestamp', nullable: true })
-  verifiedAt: Date;
+  verifiedAt!: Date;
 
   @Column({ type: 'timestamp', nullable: true })
-  verificationCheckedAt: Date;
+  verificationCheckedAt!: Date;
 
   @Column({ nullable: true })
-  name: string;
+  name!: string;
 
   @Column({ type: 'text', nullable: true })
-  description: string;
+  description!: string;
 
   @Column({ nullable: true })
-  website: string;
+  website!: string;
 
   @Column({ nullable: true })
-  email: string;
+  email!: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any>;
+  metadata!: Record<string, any>;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

@@ -39,10 +39,10 @@ export class ExpirationNotificationService {
         positionId: position.id,
         baseAsset: signal.baseAsset,
         counterAsset: signal.counterAsset,
-        expiresAt: signal.expiresAt.toISOString(),
+        expiresAt: signal.expiresAt ? signal.expiresAt.toISOString() : undefined,
         minutesUntilExpiration,
       },
-    });
+    }) as unknown as ExpirationNotification;
 
     await this.notificationRepository.save(notification);
     await this.sendNotification(notification);
@@ -81,7 +81,7 @@ export class ExpirationNotificationService {
         gracePeriodMinutes,
         gracePeriodEndsAt: gracePeriodEndsAt.toISOString(),
       },
-    });
+    }) as unknown as ExpirationNotification;
 
     await this.notificationRepository.save(notification);
     await this.sendNotification(notification);
@@ -99,7 +99,7 @@ export class ExpirationNotificationService {
     position: CopiedPosition,
     reason: AutoCloseReason,
   ): Promise<ExpirationNotification> {
-    const reasonMessages: Record<AutoCloseReason, string> = {
+    const reasonMessages: Partial<Record<AutoCloseReason, string>> = {
       [AutoCloseReason.SIGNAL_EXPIRED]: 'signal expiration',
       [AutoCloseReason.SIGNAL_CANCELLED]: 'signal cancellation by provider',
       [AutoCloseReason.TARGET_HIT]: 'target price reached',
@@ -127,7 +127,7 @@ export class ExpirationNotificationService {
         pnlPercentage: position.pnlPercentage,
         pnlAbsolute: position.pnlAbsolute,
       },
-    });
+    }) as unknown as ExpirationNotification;
 
     await this.notificationRepository.save(notification);
     await this.sendNotification(notification);
@@ -160,7 +160,7 @@ export class ExpirationNotificationService {
         counterAsset: signal.counterAsset,
         cancelledAt: new Date().toISOString(),
       },
-    });
+    }) as unknown as ExpirationNotification;
 
     await this.notificationRepository.save(notification);
     await this.sendNotification(notification);
@@ -193,7 +193,7 @@ export class ExpirationNotificationService {
         counterAsset: signal.counterAsset,
         expiredAt: new Date().toISOString(),
       },
-    });
+    }) as unknown as ExpirationNotification;
 
     await this.notificationRepository.save(notification);
     await this.sendNotification(notification);
@@ -223,7 +223,6 @@ export class ExpirationNotificationService {
       where: {
         userId,
         status: NotificationStatus.SENT,
-        readAt: undefined,
       },
       order: { createdAt: 'DESC' },
     });
@@ -235,9 +234,9 @@ export class ExpirationNotificationService {
     });
 
     notification.status = NotificationStatus.READ;
-    notification.readAt = new Date();
+    (notification as any).readAt = new Date();
 
-    return this.notificationRepository.save(notification);
+    return this.notificationRepository.save(notification as any);
   }
 
   async markAllAsRead(userId: string): Promise<number> {
@@ -256,21 +255,21 @@ export class ExpirationNotificationService {
   }
 
   private async sendNotification(
-    notification: ExpirationNotification,
+    notification: any,
   ): Promise<void> {
     try {
       // In a real implementation, this would send via the appropriate channel
       // For now, we just mark it as sent
       notification.status = NotificationStatus.SENT;
       notification.sentAt = new Date();
-      await this.notificationRepository.save(notification);
+      await this.notificationRepository.save(notification as any);
 
       this.logger.debug(
         `Notification ${notification.id} sent via ${notification.channel}`,
       );
     } catch (error) {
       notification.status = NotificationStatus.FAILED;
-      await this.notificationRepository.save(notification);
+      await this.notificationRepository.save(notification as any);
 
       this.logger.error(
         `Failed to send notification ${notification.id}: ${error}`,

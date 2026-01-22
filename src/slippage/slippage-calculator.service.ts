@@ -39,7 +39,7 @@ export class SlippageCalculatorService {
     marketDepth?: MarketDepth,
   ): Promise<SlippageEstimateResponseDto> {
     const startTime = Date.now();
-    
+
     try {
       // Get current market price and depth
       const currentPrice = await this.getCurrentMarketPrice(
@@ -47,8 +47,9 @@ export class SlippageCalculatorService {
         estimationDto.side,
       );
 
-      const depth = marketDepth || await this.getMarketDepth(estimationDto.symbol);
-      
+      const depth =
+        marketDepth || (await this.getMarketDepth(estimationDto.symbol));
+
       // Calculate estimated execution price based on order book
       const estimatedExecutionPrice = this.calculateExecutionPrice(
         estimationDto.quantity,
@@ -102,11 +103,9 @@ export class SlippageCalculatorService {
     } catch (error: any) {
       this.logger.error(
         `Error estimating slippage for ${estimationDto.symbol}`,
- feat/ai-signal-validation-integration
-        error instanceof Error ? error.stack : String(error),
+        // error instanceof Error ? error.stack : String(error),
 
         (error as Error).stack,
- main
       );
       throw error;
     }
@@ -144,7 +143,7 @@ export class SlippageCalculatorService {
     depth: MarketDepth,
   ): number {
     const orders = side === 'buy' ? depth.asks : depth.bids;
-    
+
     let remainingQuantity = quantity;
     let totalCost = 0;
     let executedQuantity = 0;
@@ -177,7 +176,7 @@ export class SlippageCalculatorService {
     side: 'buy' | 'sell',
   ): number {
     const orders = side === 'buy' ? depth.asks : depth.bids;
-    
+
     // Calculate total available liquidity in the top N levels
     const topLevels = 10;
     const availableLiquidity = orders
@@ -188,24 +187,22 @@ export class SlippageCalculatorService {
     const bestBid = depth.bids[0]?.price || 0;
     const bestAsk = depth.asks[0]?.price || 0;
     const midPrice = (bestBid + bestAsk) / 2;
-    const spreadPercent = midPrice > 0 ? ((bestAsk - bestBid) / midPrice) * 100 : 100;
+    const spreadPercent =
+      midPrice > 0 ? ((bestAsk - bestBid) / midPrice) * 100 : 100;
 
     // Score factors:
     // 1. Liquidity coverage (how much of order can be filled in top levels)
     const liquidityCoverage = Math.min(availableLiquidity / quantity, 1);
-    
+
     // 2. Spread tightness (lower spread = better)
     const spreadScore = Math.max(0, 1 - spreadPercent / 2); // Normalize to 0-1
-    
+
     // 3. Order book depth (number of price levels)
     const depthScore = Math.min(orders.length / 20, 1);
 
     // Weighted average
-    const score = (
-      liquidityCoverage * 0.5 +
-      spreadScore * 0.3 +
-      depthScore * 0.2
-    );
+    const score =
+      liquidityCoverage * 0.5 + spreadScore * 0.3 + depthScore * 0.2;
 
     return Math.max(0, Math.min(1, score));
   }
@@ -220,7 +217,7 @@ export class SlippageCalculatorService {
   ): { min: number; max: number } {
     // Use the higher of estimated or historical average slippage
     let slippagePercent = estimatedSlippagePercent;
-    
+
     if (historical && historical.averageSlippage > estimatedSlippagePercent) {
       slippagePercent = historical.averageSlippage;
     }
@@ -247,7 +244,9 @@ export class SlippageCalculatorService {
 
     // Check slippage levels
     if (estimatedSlippage > 1.0) {
-      reasons.push(`High estimated slippage (${estimatedSlippage.toFixed(2)}%)`);
+      reasons.push(
+        `High estimated slippage (${estimatedSlippage.toFixed(2)}%)`,
+      );
     }
 
     // Check liquidity
@@ -284,10 +283,7 @@ export class SlippageCalculatorService {
   /**
    * Update historical slippage data
    */
-  updateHistoricalSlippage(
-    symbol: string,
-    actualSlippage: number,
-  ): void {
+  updateHistoricalSlippage(symbol: string, actualSlippage: number): void {
     const existing = this.historicalSlippage.get(symbol);
 
     if (existing) {
@@ -323,7 +319,9 @@ export class SlippageCalculatorService {
   /**
    * Get historical slippage data for a symbol
    */
-  private getHistoricalSlippage(symbol: string): HistoricalSlippage | undefined {
+  private getHistoricalSlippage(
+    symbol: string,
+  ): HistoricalSlippage | undefined {
     return this.historicalSlippage.get(symbol);
   }
 
@@ -343,8 +341,8 @@ export class SlippageCalculatorService {
     volatility: number,
   ): number {
     // Increase tolerance in low liquidity conditions
-    const liquidityAdjustment = liquidityScore < 0.5 ? (1 - liquidityScore) : 0;
-    
+    const liquidityAdjustment = liquidityScore < 0.5 ? 1 - liquidityScore : 0;
+
     // Increase tolerance during high volatility
     const volatilityAdjustment = volatility > 2.0 ? volatility / 10 : 0;
 
@@ -367,7 +365,7 @@ export class SlippageCalculatorService {
     // TODO: Replace with actual market data provider integration
     // This is a placeholder that should connect to your exchange API
     this.logger.debug(`Fetching current market price for ${symbol}`);
-    
+
     // Simulated price - replace with real implementation
     return 45000.0;
   }

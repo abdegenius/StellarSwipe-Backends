@@ -41,3 +41,6 @@ coverage/
 *.key
 credentials.json
 secrets.json
+
+package-lock.json
+scripts

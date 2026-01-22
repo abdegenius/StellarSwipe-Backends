@@ -163,7 +163,7 @@ export class SlippageEstimateResponseDto {
     description: 'Estimated execution price range',
     example: { min: 44946.00, max: 45054.00 },
   })
-  estimatedPriceRange!: {
+  estimatedPriceRange: {
     min: number;
     max: number;
   } = { min: 0, max: 0 };

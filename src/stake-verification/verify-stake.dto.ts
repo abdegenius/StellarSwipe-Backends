@@ -11,35 +11,35 @@ export class VerifyStakeDto {
   @Matches(/^G[A-Z0-9]{55}$/, {
     message: 'Invalid Stellar public key format',
   })
-  publicKey: string;
+  publicKey!: string;
 }
 
 export class StakeVerificationResponse {
   @ApiProperty()
-  verified: boolean;
+  verified!: boolean;
 
   @ApiProperty()
-  stakeAmount: string;
+  stakeAmount!: string;
 
   @ApiProperty()
-  minimumRequired: string;
+  minimumRequired!: string;
 
   @ApiProperty()
   verifiedAt?: Date;
 
   @ApiProperty()
-  message: string;
+  message!: string;
 }
 
 export class VerificationStatusDto {
   @ApiProperty()
-  isVerified: boolean;
+  isVerified!: boolean;
 
   @ApiProperty()
-  stakeAmount: string;
+  stakeAmount!: string;
 
   @ApiProperty()
-  lastChecked: Date;
+  lastChecked!: Date;
 
   @ApiProperty()
   expiresAt?: Date;

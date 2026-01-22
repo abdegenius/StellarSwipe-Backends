@@ -1,6 +1,4 @@
-import { Injectable, Logger, BadRequestException, InternalServerErrorException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject } from '@nestjs/common';
@@ -10,9 +8,8 @@ import {
   Contract,
   Address,
   scValToNative,
-  xdr,
 } from '@stellar/stellar-sdk';
-import { VerifyStakeDto, StakeVerificationResponse, VerificationStatusDto } from '../dto/verify-stake.dto';
+import { VerifyStakeDto, StakeVerificationResponse, VerificationStatusDto } from './verify-stake.dto';
 
 // Assuming you have a Provider entity
 // import { Provider } from '../entities/provider.entity';
@@ -26,7 +23,6 @@ export class StakeVerificationService {
   private readonly logger = new Logger(StakeVerificationService.name);
   private readonly sorobanServer: SorobanRpc.Server;
   private readonly stakeContractAddress: string;
-  private readonly networkPassphrase: string;
 
   constructor(
     // @InjectRepository(Provider)
@@ -36,11 +32,7 @@ export class StakeVerificationService {
   ) {
     const rpcUrl = this.configService.get<string>('SOROBAN_RPC_URL', 'https://soroban-testnet.stellar.org');
     this.sorobanServer = new SorobanRpc.Server(rpcUrl);
-    this.stakeContractAddress = this.configService.get<string>('STAKE_CONTRACT_ADDRESS');
-    this.networkPassphrase = this.configService.get<string>(
-      'STELLAR_NETWORK_PASSPHRASE',
-      'Test SDF Network ; September 2015',
-    );
+    this.stakeContractAddress = this.configService.get<string>('STAKE_CONTRACT_ADDRESS') || '';
 
     if (!this.stakeContractAddress) {
       this.logger.warn('STAKE_CONTRACT_ADDRESS not configured');
@@ -98,7 +90,8 @@ export class StakeVerificationService {
       this.logger.log(`Verification result for ${dto.publicKey}: ${isVerified ? 'SUCCESS' : 'FAILED'}`);
       return response;
     } catch (error) {
-      this.logger.error(`Stake verification failed for ${dto.publicKey}:`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Stake verification failed for ${dto.publicKey}:`, errorMessage);
       throw new InternalServerErrorException('Failed to verify stake. Please try again later.');
     }
   }
@@ -126,7 +119,8 @@ export class StakeVerificationService {
       );
 
       // Simulate the transaction to get the result
-      const { result } = await this.sorobanServer.simulateTransaction(transaction as any);
+      const response = await this.sorobanServer.simulateTransaction(transaction as any);
+      const result = (response as any).result;
 
       if (!result || SorobanRpc.Api.isSimulationError(result)) {
         this.logger.error('Soroban simulation failed', result);
@@ -142,11 +136,12 @@ export class StakeVerificationService {
       this.logger.debug(`Stake amount for ${publicKey}: ${stakeInXlm} XLM`);
       return stakeInXlm;
     } catch (error) {
-      this.logger.error(`Soroban query failed for ${publicKey}:`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Soroban query failed for ${publicKey}:`, errorMessage);
       
       // If Soroban call fails, return 0 instead of throwing
       // This prevents verification failure due to network issues
-      if (error.message?.includes('not found') || error.message?.includes('does not exist')) {
+      if (errorMessage.includes('not found') || errorMessage.includes('does not exist')) {
         this.logger.warn(`No stake found for ${publicKey}`);
         return '0';
       }
@@ -200,7 +195,7 @@ export class StakeVerificationService {
   private async updateProviderVerification(
     publicKey: string,
     verified: boolean,
-    stakeAmount: string,
+    _stakeAmount: string,
   ): Promise<void> {
     // Uncomment when Provider entity is available
     /*
@@ -213,7 +208,7 @@ export class StakeVerificationService {
     }
 
     provider.verified = verified;
-    provider.stakeAmount = stakeAmount;
+    provider.stakeAmount = _stakeAmount;
     provider.verificationCheckedAt = new Date();
 
     if (verified && !provider.verifiedAt) {
@@ -253,7 +248,8 @@ export class StakeVerificationService {
 
         results.set(publicKey, isVerified);
       } catch (error) {
-        this.logger.error(`Failed to verify ${publicKey}:`, error.message);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.logger.error(`Failed to verify ${publicKey}:`, errorMessage);
         results.set(publicKey, false);
       }
     }

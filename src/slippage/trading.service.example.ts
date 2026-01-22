@@ -134,11 +134,8 @@ export class TradingService {
     } catch (error: any) {
       this.logger.error(
         `Error executing trade for ${params.symbol}`,
- feat/ai-signal-validation-integration
-        error instanceof Error ? error.stack : String(error),
-
+        // error instanceof Error ? error.stack : String(error),
         (error as Error).stack,
- main
       );
       throw error;
     }

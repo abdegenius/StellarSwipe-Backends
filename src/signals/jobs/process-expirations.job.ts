@@ -10,7 +10,7 @@ import { Job } from 'bull';
 import { SignalExpirationService } from '../services/signal-expiration.service';
 import { ExpirationHandlerService, EXPIRATION_QUEUE } from '../services/expiration-handler.service';
 import { ExpirationNotificationService } from '../services/expiration-notification.service';
-import { PositionStatus } from '../entities/copied-position.entity';
+import { PositionStatus, CopiedPosition } from '../entities/copied-position.entity';
 
 interface CheckSignalExpirationData {
   signalId: string;
@@ -160,7 +160,7 @@ export class ProcessExpirationsJob {
 
     for (const signal of signals) {
       const openPositions = signal.copiedPositions?.filter(
-        (p) => p.status === PositionStatus.OPEN,
+        (p: CopiedPosition) => p.status === PositionStatus.OPEN,
       ) ?? [];
 
       for (const position of openPositions) {

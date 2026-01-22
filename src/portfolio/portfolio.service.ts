@@ -22,7 +22,7 @@ export class PortfolioService {
     const openTrades = await this.tradeRepository.find({
       where: {
         userId,
-        status: In([TradeStatus.OPEN, TradeStatus.PENDING]),
+        status: In([TradeStatus.PENDING, TradeStatus.EXECUTING]),
       },
     });
 
@@ -30,22 +30,23 @@ export class PortfolioService {
       return [];
     }
 
-    const symbols = [...new Set(openTrades.map((t) => t.assetSymbol))];
+    const symbols = [...new Set(openTrades.map((t) => `${t.baseAsset}/${t.counterAsset}`))];
     const prices = await this.priceService.getMultiplePrices(symbols);
 
     return openTrades.map((trade) => {
-      const currentPrice = prices[trade.assetSymbol] || trade.entryPrice;
+      const pair = `${trade.baseAsset}/${trade.counterAsset}`;
+      const currentPrice = prices[pair] || Number(trade.entryPrice);
       const unrealizedPnL = this.calculateUnrealizedPnL(trade, currentPrice);
 
       return {
         id: trade.id,
-        assetSymbol: trade.assetSymbol,
+        assetSymbol: pair,
         amount: Number(trade.amount),
         entryPrice: Number(trade.entryPrice),
         currentPrice: currentPrice,
         unrealizedPnL: unrealizedPnL,
         side: trade.side,
-        openedAt: trade.openedAt,
+        openedAt: new Date(), // Use current date or add to entity
       };
     });
   }
@@ -54,9 +55,9 @@ export class PortfolioService {
     const [data, total] = await this.tradeRepository.findAndCount({
       where: {
         userId,
-        status: TradeStatus.CLOSED,
+        status: TradeStatus.COMPLETED,
       },
-      order: { closedAt: 'DESC' },
+      order: { updatedAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -85,29 +86,30 @@ export class PortfolioService {
 
     // Get current prices for open positions
     const openTradeSymbols = allTrades
-      .filter((t) => t.status === TradeStatus.OPEN || t.status === TradeStatus.PENDING)
-      .map((t) => t.assetSymbol);
+      .filter((t) => t.status === TradeStatus.EXECUTING || t.status === TradeStatus.PENDING)
+      .map((t) => `${t.baseAsset}/${t.counterAsset}`);
     
     // De-duplicate symbols
     const uniqueSymbols = [...new Set(openTradeSymbols)];
     const prices = await this.priceService.getMultiplePrices(uniqueSymbols);
 
     for (const trade of allTrades) {
-      if (trade.status === TradeStatus.CLOSED) {
-        realizedPnL += Number(trade.realizedPnl || 0);
+      if (trade.status === TradeStatus.COMPLETED) {
+        realizedPnL += Number(trade.profitLoss || 0);
         closedTradesCount++;
-        if (Number(trade.realizedPnl) > 0) winningTrades++;
+        if (Number(trade.profitLoss) > 0) winningTrades++;
         
-        if (!bestTrade || Number(trade.realizedPnl) > Number(bestTrade.realizedPnl)) {
+        if (!bestTrade || Number(trade.profitLoss) > Number(bestTrade.profitLoss)) {
             bestTrade = trade;
         }
-        if (!worstTrade || Number(trade.realizedPnl) < Number(worstTrade.realizedPnl)) {
+        if (!worstTrade || Number(trade.profitLoss) < Number(worstTrade.profitLoss)) {
             worstTrade = trade;
         }
 
-      } else if (trade.status === TradeStatus.OPEN || trade.status === TradeStatus.PENDING) {
+      } else if (trade.status === TradeStatus.EXECUTING || trade.status === TradeStatus.PENDING) {
         openPositions++;
-        const currentPrice = prices[trade.assetSymbol] || Number(trade.entryPrice);
+        const pair = `${trade.baseAsset}/${trade.counterAsset}`;
+        const currentPrice = prices[pair] || Number(trade.entryPrice);
         unrealizedPnL += this.calculateUnrealizedPnL(trade, currentPrice);
       }
     }
@@ -121,8 +123,9 @@ export class PortfolioService {
     
     let totalValue = 0;
      for (const trade of allTrades) {
-         if (trade.status === TradeStatus.OPEN || trade.status === TradeStatus.PENDING) {
-             const price = prices[trade.assetSymbol] || Number(trade.entryPrice);
+         if (trade.status === TradeStatus.EXECUTING || trade.status === TradeStatus.PENDING) {
+             const pair = `${trade.baseAsset}/${trade.counterAsset}`;
+             const price = prices[pair] || Number(trade.entryPrice);
              totalValue += Number(trade.amount) * price;
          }
      }

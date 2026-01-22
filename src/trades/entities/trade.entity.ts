@@ -5,7 +5,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 export enum TradeStatus {
   PENDING = 'pending',
@@ -28,6 +31,10 @@ export class Trade {
   @Column({ name: 'user_id', type: 'uuid' })
   @Index()
   userId!: string;
+
+  @ManyToOne(() => User, (user) => user.trades)
+  @JoinColumn({ name: 'user_id' })
+  user!: User;
 
   @Column({ name: 'signal_id', type: 'uuid' })
   @Index()

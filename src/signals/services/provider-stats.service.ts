@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProviderStats } from '../entities/provider-stats.entity';
 import { Signal, SignalStatus, SignalOutcome } from '../entities/signal.entity';
-import { ProviderStatsQueryDto } from '../dto';
 
 @Injectable()
 export class ProviderStatsService {
@@ -43,7 +42,7 @@ export class ProviderStatsService {
     return stats;
   }
 
-  async listProviderStats(query: ProviderStatsQueryDto): Promise<{
+  async listProviderStats(query: any): Promise<{
     data: ProviderStats[];
     total: number;
     page: number;

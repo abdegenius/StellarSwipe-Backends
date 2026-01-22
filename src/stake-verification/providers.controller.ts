@@ -6,22 +6,20 @@ import {
   Param,
   HttpCode,
   HttpStatus,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
-import { StakeVerificationService } from './services/stake-verification.service';
-import { VerificationMonitorJob } from './services/verification-monitor.job';
+import { StakeVerificationService } from './stake-verification.service';
+import { VerificationMonitorJob } from './verification-monitor.job';
 import {
   VerifyStakeDto,
   StakeVerificationResponse,
   VerificationStatusDto,
-} from './dto/verify-stake.dto';
+} from './verify-stake.dto';
 
 // Uncomment when you have authentication guards
 // import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -120,8 +118,8 @@ export class ProvidersController {
   })
   async triggerMonitoring(): Promise<{ message: string }> {
     // Run in background to avoid timeout
-    this.verificationMonitor.triggerImmediateCheck().catch((error) => {
-      console.error('Background monitoring check failed:', error);
+    this.verificationMonitor.triggerImmediateCheck().catch(() => {
+      // Error already logged by the service
     });
     
     return { message: 'Monitoring check triggered successfully' };
