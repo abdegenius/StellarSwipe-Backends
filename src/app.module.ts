@@ -1,9 +1,8 @@
-
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bull';
-import { CacheModule } from '@nestjs/cache-manager';
+// import { CacheModule } from '@nestjs/cache-manager';
 import { stellarConfig } from './config/stellar.config';
 import { databaseConfig, redisConfig } from './config/database.config';
 import { xaiConfig } from './config/xai.config';
@@ -23,6 +22,9 @@ import { AssetsModule } from './assets/assets.module';
 import { configSchema } from './config/schemas/config.schema';
 import configuration from './config/configuration';
 import { HealthModule } from './health/health.module';
+import { CacheModule } from './cache/cache.module';
+import { redisCacheConfig } from './config/redis.config';
+import { SorobanModule } from './soroban/soroban.module';
 
 @Module({
   imports: [
@@ -35,6 +37,7 @@ import { HealthModule } from './health/health.module';
         stellarConfig,
         databaseConfig,
         redisConfig,
+        redisCacheConfig,
         jwtConfig,
         xaiConfig,
         configuration,
@@ -109,6 +112,10 @@ import { HealthModule } from './health/health.module';
     PortfolioModule,
     AiValidationModule,
     HealthModule,
+    HealthModule,
+    // Cache Module - Redis-based caching for sessions and data
+    CacheModule,
+    SorobanModule,
   ],
   providers: [StellarConfigService],
   exports: [StellarConfigService],
