@@ -61,7 +61,7 @@ import { HealthController } from './health/health.controller';
         entities: ['dist/**/*.entity{.ts,.js}'],
         migrations: ['dist/migrations/*{.ts,.js}'],
         subscribers: ['dist/subscribers/*{.ts,.js}'],
-        ssl: configService.get<boolean>('database.ssl'),
+        ssl: configService.get<boolean>('database.ssl') ?? false,
       }),
     }),
     // Feature Modules
