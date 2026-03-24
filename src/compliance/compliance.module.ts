@@ -10,6 +10,7 @@ import { ComplianceReportingService } from './compliance-reporting.service';
 import { ComplianceService } from './compliance.service';
 import { ComplianceController } from './compliance.controller';
 import { ComplianceLog } from './entities/compliance-log.entity';
+ Management
 import { RegulatoryReportingModule } from './regulatory-reporting/regulatory-reporting.module';
 
 @Module({
@@ -60,6 +61,7 @@ import { FinancialReportGenerator } from './reports/financial-report.generator';
     ComplianceService,
     AmlMonitoringService,
   ],
+main
 })
 export class ComplianceModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

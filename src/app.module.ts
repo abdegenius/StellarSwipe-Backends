@@ -23,6 +23,12 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { ApiMonetizationModule } from './api-monetization/api-monetization.module';
 import { SlaModule } from './enterprise/sla/sla.module';
+ api
+import { AnalyticsModule } from './analytics/analytics.module';
+import { WebsocketModule } from './websocket/websocket.module';
+import { ApiMonetizationModule } from './api-monetization/api-monetization.module';
+Management
+import { SlaModule } from './enterprise/sla/sla.module';
 import { UsersModule } from './users/users.module';
 import { SignalsModule } from './signals/signals.module';
 import { TradesModule } from './trades/trades.module';
@@ -42,6 +48,8 @@ import { KycModule } from './kyc/kyc.module';
 import { ProductAnalyticsModule } from './analytics/product-analytics.module';
 import { BackupModule } from './backup/backup.module';
 import { AdminAnalyticsModule } from './admin/analytics/admin-analytics.module';
+main
+main
 
 @Module({
   imports: [
@@ -125,6 +133,11 @@ import { AdminAnalyticsModule } from './admin/analytics/admin-analytics.module';
     WebsocketModule,
     ApiMonetizationModule,
     SlaModule,
+ api
+    WebsocketModule,
+    ApiMonetizationModule,
+ Management
+    SlaModule,
     ProvidersModule,
     MlModule,
     ScalingModule,
@@ -139,6 +152,8 @@ import { AdminAnalyticsModule } from './admin/analytics/admin-analytics.module';
     ProductAnalyticsModule,
     BackupModule,
     AdminAnalyticsModule,
+ main
+main
   ],
   providers: [StellarConfigService],
   exports: [StellarConfigService],
