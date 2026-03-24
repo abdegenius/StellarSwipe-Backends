@@ -38,6 +38,7 @@ import { KycModule } from './kyc/kyc.module';
 import { ProductAnalyticsModule } from './analytics/product-analytics.module';
 import { BackupModule } from './backup/backup.module';
 import { AdminAnalyticsModule } from './admin/analytics/admin-analytics.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -132,6 +133,7 @@ import { AdminAnalyticsModule } from './admin/analytics/admin-analytics.module';
     ProductAnalyticsModule,
     BackupModule,
     AdminAnalyticsModule,
+    SearchModule,
   ],
   providers: [StellarConfigService],
   exports: [StellarConfigService],
