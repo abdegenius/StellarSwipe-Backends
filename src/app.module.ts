@@ -19,14 +19,16 @@ import { LoggerModule } from './common/logger';
 import { SentryModule } from './common/sentry';
 import { CacheModule } from './cache/cache.module';
 import { AuthModule } from './auth/auth.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { WebsocketModule } from './websocket/websocket.module';
+import { ApiMonetizationModule } from './api-monetization/api-monetization.module';
+import { SlaModule } from './enterprise/sla/sla.module';
  api
 import { AnalyticsModule } from './analytics/analytics.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { ApiMonetizationModule } from './api-monetization/api-monetization.module';
 Management
 import { SlaModule } from './enterprise/sla/sla.module';
-=======
-=======
 import { UsersModule } from './users/users.module';
 import { SignalsModule } from './signals/signals.module';
 import { TradesModule } from './trades/trades.module';
@@ -128,13 +130,14 @@ main
     TradesModule,
     CacheModule,
     AuthModule,
+    WebsocketModule,
+    ApiMonetizationModule,
+    SlaModule,
  api
     WebsocketModule,
     ApiMonetizationModule,
  Management
     SlaModule,
-=======
-=======
     ProvidersModule,
     MlModule,
     ScalingModule,
