@@ -23,6 +23,9 @@ import { AuthModule } from './auth/auth.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { ApiMonetizationModule } from './api-monetization/api-monetization.module';
+Management
+import { SlaModule } from './enterprise/sla/sla.module';
+=======
 =======
 import { UsersModule } from './users/users.module';
 import { SignalsModule } from './signals/signals.module';
@@ -43,6 +46,7 @@ import { KycModule } from './kyc/kyc.module';
 import { ProductAnalyticsModule } from './analytics/product-analytics.module';
 import { BackupModule } from './backup/backup.module';
 import { AdminAnalyticsModule } from './admin/analytics/admin-analytics.module';
+main
 main
 
 @Module({
@@ -127,6 +131,9 @@ main
  api
     WebsocketModule,
     ApiMonetizationModule,
+ Management
+    SlaModule,
+=======
 =======
     ProvidersModule,
     MlModule,
@@ -143,6 +150,7 @@ main
     BackupModule,
     AdminAnalyticsModule,
  main
+main
   ],
   providers: [StellarConfigService],
   exports: [StellarConfigService],
