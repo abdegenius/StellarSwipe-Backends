@@ -15,6 +15,10 @@ import { SanitizationPipe } from './common/pipes';
 import { RedisIoAdapter } from './websocket/adapters/redis-io.adapter';
 import { InstanceCoordinatorService } from './scaling/instance-coordinator.service';
 import { compressionConfig } from './common/config/compression.config';
+import { MetricsInterceptor } from './monitoring/metrics/metrics.interceptor';
+import { initTracing } from './monitoring/tracing/jaeger.config';
+
+initTracing();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -85,6 +89,7 @@ async function bootstrap() {
   // Global interceptors
   app.useGlobalInterceptors(new LoggingInterceptor(logger));
   app.useGlobalInterceptors(new TransformInterceptor());
+  app.useGlobalInterceptors(app.get(MetricsInterceptor));
 
   // Swagger Setup
   const config = new DocumentBuilder()
@@ -110,46 +115,29 @@ async function bootstrap() {
 
   await app.listen(port, host, () => {
     logger.info(`🚀 StellarSwipe Backend running on http://${host}:${port}`);
-    logger.info(
-      `📚 API available at http://${host}:${port}${globalPrefix}`,
-    );
-    logger.info(
-      `📚 Swagger documentation at http://${host}:${port}${globalPrefix}/docs`,
-    );
+    logger.info(`📚 API available at http://${host}:${port}${globalPrefix}`);
+    logger.info(`📚 Swagger documentation at http://${host}:${port}${globalPrefix}/docs`);
   });
 
-  // Unhandled rejection handler
   process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
-    logger.error('Unhandled Rejection', reason, {
-      promise: String(promise),
-    });
+    logger.error('Unhandled Rejection', reason, { promise: String(promise) });
     sentryService.captureException(
       reason instanceof Error ? reason : new Error(String(reason)),
-      {
-        type: 'unhandledRejection',
-      },
+      { type: 'unhandledRejection' },
     );
   });
 
-  // Uncaught exception handler
   process.on('uncaughtException', (error: Error) => {
     logger.error('Uncaught Exception', error);
-    sentryService.captureException(error, {
-      type: 'uncaughtException',
-    });
-    // Give time for logging and Sentry to flush
-    setTimeout(() => {
-      process.exit(1);
-    }, 1000);
+    sentryService.captureException(error, { type: 'uncaughtException' });
+    setTimeout(() => process.exit(1), 1000);
   });
 
-  // Graceful shutdown
   process.on('SIGTERM', async () => {
     logger.info('SIGTERM signal received: closing HTTP server');
     await sentryService.flush();
     await app.close();
   });
-
 }
 
 bootstrap().catch((err) => {

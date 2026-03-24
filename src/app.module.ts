@@ -25,19 +25,11 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { ApiMonetizationModule } from './api-monetization/api-monetization.module';
 import { SlaModule } from './enterprise/sla/sla.module';
- api
-import { AnalyticsModule } from './analytics/analytics.module';
-import { WebsocketModule } from './websocket/websocket.module';
-import { ApiMonetizationModule } from './api-monetization/api-monetization.module';
-Management
-import { SlaModule } from './enterprise/sla/sla.module';
- main
 import { UsersModule } from './users/users.module';
 import { SignalsModule } from './signals/signals.module';
 import { TradesModule } from './trades/trades.module';
 import { ProvidersModule } from './providers/providers.module';
 import { MlModule } from './ml/ml.module';
-// import { ValidationModule } from './common/validation/validation.module';
 import { ScalingModule } from './scaling/scaling.module';
 import { VersioningModule } from './common/modules/versioning.module';
 import { ReferralsModule } from './referrals/referrals.module';
@@ -51,15 +43,7 @@ import { KycModule } from './kyc/kyc.module';
 import { ProductAnalyticsModule } from './analytics/product-analytics.module';
 import { BackupModule } from './backup/backup.module';
 import { AdminAnalyticsModule } from './admin/analytics/admin-analytics.module';
- feat/personalized-signal-recommendations
-import { RecommendationsModule } from './recommendations/recommendations.module';
-
- feature/sep24-fiat-on-off-ramp
-import { Sep24Module } from './anchors/sep24/sep24.module';
-
-main
-import { SearchModule } from './search/search.module';
- main
+import { MonitoringModule } from './monitoring/monitoring.module';
 
 @Module({
   imports: [
@@ -114,25 +98,17 @@ import { SearchModule } from './search/search.module';
         migrations: ['dist/migrations/*{.ts,.js}'],
         subscribers: ['dist/subscribers/*{.ts,.js}'],
         ssl: configService.get<boolean>('database.ssl') ?? false,
-        // Connection Pool Configuration (min: 10, max: 30 for 10k+ users)
         extra: {
           min: parseInt(process.env.DATABASE_POOL_MIN || '10', 10),
           max: parseInt(process.env.DATABASE_POOL_MAX || '30', 10),
-          idleTimeoutMillis: parseInt(
-            process.env.DATABASE_POOL_IDLE_TIMEOUT || '30000',
-            10,
-          ),
-          connectionTimeoutMillis: parseInt(
-            process.env.DATABASE_POOL_CONNECTION_TIMEOUT || '2000',
-            10,
-          ),
+          idleTimeoutMillis: parseInt(process.env.DATABASE_POOL_IDLE_TIMEOUT || '30000', 10),
+          connectionTimeoutMillis: parseInt(process.env.DATABASE_POOL_CONNECTION_TIMEOUT || '2000', 10),
         },
       }),
     }),
 
     EventEmitterModule.forRoot(),
 
-    // DatabaseOptimizationModule,
     LoggerModule,
     SentryModule,
     UsersModule,
@@ -140,17 +116,10 @@ import { SearchModule } from './search/search.module';
     TradesModule,
     CacheModule,
     AuthModule,
- feature/sep24-fiat-on-off-ramp
-
+    AnalyticsModule,
     WebsocketModule,
     ApiMonetizationModule,
     SlaModule,
- api
-    WebsocketModule,
-    ApiMonetizationModule,
- Management
-    SlaModule,
- main
     ProvidersModule,
     MlModule,
     ScalingModule,
@@ -165,15 +134,7 @@ import { SearchModule } from './search/search.module';
     ProductAnalyticsModule,
     BackupModule,
     AdminAnalyticsModule,
- feat/personalized-signal-recommendations
-    RecommendationsModule,
-
- feature/sep24-fiat-on-off-ramp
-    Sep24Module,
-
- main
-    SearchModule,
- main
+    MonitoringModule,
   ],
   providers: [StellarConfigService],
   exports: [StellarConfigService],

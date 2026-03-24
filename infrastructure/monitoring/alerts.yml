@@ -1,0 +1,90 @@
+groups:
+  - name: stellarswipe.api
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          rate(http_requests_errors_total[5m])
+          / rate(http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Error rate above 5%"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.route }}"
+
+      - alert: SlowAPIResponse
+        expr: |
+          histogram_quantile(0.95,
+            rate(http_request_duration_seconds_bucket[5m])
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "95th percentile response time > 2s"
+          description: "p95 latency is {{ $value }}s on {{ $labels.route }}"
+
+      - alert: HighRequestRate
+        expr: rate(http_requests_total[1m]) > 1000
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Request rate above 1000 RPM"
+
+  - name: stellarswipe.business
+    rules:
+      - alert: NoTradesExecuted
+        expr: rate(trades_executed_total[30m]) == 0
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No trades executed in 30 minutes"
+
+      - alert: LowCacheHitRate
+        expr: |
+          rate(cache_hits_total[5m])
+          / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m])) < 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Cache hit rate below 50%"
+
+  - name: stellarswipe.infrastructure
+    rules:
+      - alert: HighMemoryUsage
+        expr: nodejs_heap_size_used_bytes / nodejs_heap_size_total_bytes > 0.9
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node.js heap usage above 90%"
+
+      - alert: DatabaseSlowQueries
+        expr: |
+          histogram_quantile(0.95,
+            rate(db_query_duration_seconds_bucket[5m])
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "DB p95 query time > 1s"
+
+      - alert: HighDBConnections
+        expr: postgresql_connections_active > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL active connections above 80"
+
+      - alert: AppDown
+        expr: up{job="stellarswipe-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "StellarSwipe backend is down"

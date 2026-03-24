@@ -1,0 +1,63 @@
+{
+  "title": "StellarSwipe — Business KPIs",
+  "uid": "stellarswipe-kpis",
+  "refresh": "30s",
+  "time": { "from": "now-24h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Trades per Minute",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 6 },
+      "targets": [{
+        "expr": "rate(trades_executed_total[1m]) * 60",
+        "legendFormat": "{{side}} {{status}}"
+      }]
+    },
+    {
+      "id": 2,
+      "title": "Active Users",
+      "type": "stat",
+      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 6 },
+      "targets": [{ "expr": "active_users_gauge", "legendFormat": "Users" }]
+    },
+    {
+      "id": 3,
+      "title": "Total Portfolio Value",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 6 },
+      "targets": [{ "expr": "portfolio_value_total", "legendFormat": "Value" }]
+    },
+    {
+      "id": 4,
+      "title": "Signals Created",
+      "type": "timeseries",
+      "gridPos": { "x": 16, "y": 0, "w": 8, "h": 6 },
+      "targets": [{
+        "expr": "rate(signals_created_total[5m]) * 60",
+        "legendFormat": "{{type}}"
+      }]
+    },
+    {
+      "id": 5,
+      "title": "Trade Success Rate (%)",
+      "type": "gauge",
+      "gridPos": { "x": 0, "y": 6, "w": 8, "h": 4 },
+      "targets": [{
+        "expr": "rate(trades_executed_total{status='completed'}[5m]) / rate(trades_executed_total[5m]) * 100",
+        "legendFormat": "Success %"
+      }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "thresholds": { "steps": [{ "color": "red", "value": 0 }, { "color": "yellow", "value": 80 }, { "color": "green", "value": 95 }] } }
+    },
+    {
+      "id": 6,
+      "title": "Cumulative Trades (24h)",
+      "type": "stat",
+      "gridPos": { "x": 8, "y": 6, "w": 8, "h": 4 },
+      "targets": [{
+        "expr": "increase(trades_executed_total[24h])",
+        "legendFormat": "Trades"
+      }]
+    }
+  ]
+}
