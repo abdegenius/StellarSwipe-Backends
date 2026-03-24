@@ -34,6 +34,7 @@ import { RateLimitModule } from './common/rate-limit.module';
 import { AuthModule } from './auth/auth.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { WebsocketModule } from './websocket/websocket.module';
+import { ApiMonetizationModule } from './api-monetization/api-monetization.module';
 
 @Module({
   imports: [
@@ -119,6 +120,7 @@ import { WebsocketModule } from './websocket/websocket.module';
     CacheModule,
     AuthModule,
     WebsocketModule,
+    ApiMonetizationModule,
   ],
   providers: [StellarConfigService],
   exports: [StellarConfigService],
