@@ -14,6 +14,7 @@ import { PriceService } from '../shared/price.service';
 import { CorrelationService } from './services/correlation.service';
 import { PriceHistory } from '../prices/entities/price-history.entity';
 import { AssetPair } from '../assets/entities/asset-pair.entity';
+import { TradePatternsModule } from './trade-patterns/trade-patterns.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { AssetPair } from '../assets/entities/asset-pair.entity';
       AssetPair,
     ]),
     ScheduleModule.forRoot(),
+    TradePatternsModule,
   ],
   controllers: [AnalyticsController],
   providers: [
