@@ -12,6 +12,12 @@ import {
 } from './versions/entities/signal-version.entity';
 import { SignalVersionService } from './versions/signal-version.service';
 import { SignalVersionController } from './versions/signal-version.controller';
+import { SignalDecay } from './decay-analysis/entities/signal-decay.entity';
+import { DecayAnalyzerService } from './decay-analysis/decay-analyzer.service';
+import { SignalPerformanceService } from './services/signal-performance.service';
+import { SdexPriceService } from './services/sdex-price.service';
+import { SignalPerformance } from './entities/signal-performance.entity';
+import { AnalyzeSignalDecayJob } from './decay-analysis/jobs/analyze-signal-decay.job';
 
 @Module({
   imports: [
@@ -20,6 +26,8 @@ import { SignalVersionController } from './versions/signal-version.controller';
       CopiedPosition,
       SignalVersion,
       SignalVersionApproval,
+      SignalDecay,
+      SignalPerformance,
     ]),
     BullModule.registerQueueAsync({
       name: 'signal-tracking',
@@ -44,8 +52,22 @@ import { SignalVersionController } from './versions/signal-version.controller';
       }),
     }),
   ],
-  providers: [SignalsService, SignalVersionService],
+  providers: [
+    SignalsService,
+    SignalVersionService,
+    DecayAnalyzerService,
+    SignalPerformanceService,
+    SdexPriceService,
+    AnalyzeSignalDecayJob,
+  ],
   controllers: [SignalsController, SignalVersionController],
-  exports: [SignalsService, SignalVersionService, TypeOrmModule],
+  exports: [
+    SignalsService,
+    SignalVersionService,
+    DecayAnalyzerService,
+    SignalPerformanceService,
+    SdexPriceService,
+    TypeOrmModule,
+  ],
 })
 export class SignalsModule {}
