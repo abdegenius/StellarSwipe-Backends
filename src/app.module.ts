@@ -31,7 +31,7 @@ import { TradesModule } from './trades/trades.module';
 import { ProvidersModule } from './providers/providers.module';
 import { MlModule } from './ml/ml.module';
 import { ScalingModule } from './scaling/scaling.module';
-import { VersioningModule } from './common/modules/versioning.module';
+import { VersioningModule } from './versioning/versioning.module';
 import { ReferralsModule } from './referrals/referrals.module';
 import { EventsModule } from './events/events.module';
 import { ApiKeysModule } from './api-keys/api-keys.module';
